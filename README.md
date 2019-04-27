@@ -32,6 +32,6 @@ h0rse是一个更现代化的Web漏洞扫描器，它与其他同类黑客工具
 
 暂时想到这么多，希望在`构思~开发~测试~漏洞研究（repeat）`的过程中自己能获益匪浅。
 
-![](C:\Users\lenovo\Pictures\D0AuDb_U0AAEXzk.jpg)
+![](C:\Users\lenovo\Pictures\tran\100734-GIA-PAIGE-360x465-1.jpeg)
 
 那开始吧，先看看gevent库。
