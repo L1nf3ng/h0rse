@@ -1,4 +1,8 @@
 # -*- encoding:utf-8 -*-
 # the main function:
-# parse the urls in page
-# classify them into diffrent catogaries
+# request the page & parse the urls to classify them into diffrent catogaries
+
+import requests
+
+root_url = 'http://www.bandao.cn'
+

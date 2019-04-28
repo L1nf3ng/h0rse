@@ -34,4 +34,4 @@ h0rse是一个更现代化的Web漏洞扫描器，它与其他同类黑客工具
 
 ![](C:\Users\lenovo\Pictures\tran\100734-GIA-PAIGE-360x465-1.jpeg)
 
-那开始吧，先看看gevent库。
+那开始吧，先看看gevent库。第一个版本跑通主要流程，第二个版本再去弥补健壮性。
