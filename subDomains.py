@@ -49,7 +49,7 @@ class MyParser:
 
     # 事件 3 -- 所有标签处理结束后执行
     def close(self):
-        pass
+        return self._urls
 
     # 预留一个处理头信息url的函数
     def _handle_headers_urls(self):
@@ -59,11 +59,18 @@ class MyParser:
     def _handle_text_urls(self):
         pass
 
-    def _handle_a_tag_start(self,tag,attrs):
-        print("WE go into a tag!")
 
-    def _handle_a_tag_end(self,tag):
-        print("WE go out a tag!")
+    # 定制化处理表单内url
+    def _handle_form_tag_start(self,tag,attrs):
+        action = attrs.get('action', None)
+#        print("WE get into a form tag, and the url is ",action)
+        if action is not None:
+            self._urls.add(action)
+#            print("Successful adding")
+
+    def _handle_form_tag_end(self,tag):
+        pass
+#        print("Went out a form tag. Just now, we didn't make a request.")
 
 
 def parse_with_officialParser(file):
@@ -78,11 +85,14 @@ def parse_with_officialParser(file):
 
 if __name__ == '__main__':
     # now we start to parse the document
+    past = time.time()
     t= MyParser()
     parser = HTMLParser(target=t)
-    parse(store_file,parser)
+    res1 = parse(store_file,parser)
+    print('result len: ',len(res1))
+    now = time.time()
+    print("we cost %ss time!"%(now-past))
 
-'''
     past = time.time()
     res2 = parse_with_officialParser(store_file)
     print('result len: ',len(res2))
@@ -93,4 +103,3 @@ if __name__ == '__main__':
         for x in res:
             if not x.startswith('http://') and not x.startswith('https://'):
                 print(x)
-'''
