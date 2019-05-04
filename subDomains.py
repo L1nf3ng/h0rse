@@ -9,7 +9,7 @@ import time
 
 
 root_url = 'http://www.bandao.cn'
-store_file = 'index.html'
+store_file = 'tmp/index.html'
 
 # frame 和 iframe 傻傻分不清
 Origin_Tags = ['a','img','link','script','iframe','frame','form','object']

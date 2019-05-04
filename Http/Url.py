@@ -40,6 +40,12 @@ class Url:
     def path(self):
         return self._path
 
+    # generate a standard url to feed the request method: get、post、put、head
+    # TODO: finish it tomorrow!
+    @property
+    def canonical_url(self):
+        pass
+
     def __str__(self):
         return "the 6-elements tuple is: %s %s %s %s %s %s"%(self._host, str(self._port), self._path, self._filename, self._file_ext, self._params)
 
@@ -49,3 +55,4 @@ if __name__=='__main__':
     t_url = 'http://www.goodle.com/index.pphjp?a=2134&rb=414#fdfo'
     xt= Url(t_url)
     print(xt, ' additional: ',xt.fragment)
+    print("original url string: ",xt.canonical_url)
