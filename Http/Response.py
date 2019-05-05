@@ -14,9 +14,6 @@
 import re
 from Configs.Config import  DEFAULT_ENCODING
 
-# 对于re模块来说，输入必须是str对象，所以这里选择了response.text
-#= re.search('charset=([^"]+")', response.text).group(1)
-
 def toResponse(response):
     code = response.status_code
     msg = response.reason

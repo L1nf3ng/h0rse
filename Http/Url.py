@@ -18,19 +18,25 @@ class Url:
         # 先补齐协议名、端口名
         if not urlString.startswith('http://') and not urlString.startswith('https://'):
             urlString = 'http://'+urlString
+        # the general structure of a URL: scheme://netloc/path;parameters?query#fragment
         result = urlparse(urlString)
+        self._scheme = result.scheme
         self._host = result.hostname
         self._path = result.path
-        if result.port is None:
+        if result.netloc.find(':') != -1:
+            self._port = result.netloc[result.netloc.find(':')+1:]
+        else:
             self._port= 80 if result.scheme=='http' else 443
+        # in most situations, no params
         self._params = result.params
+        self._query = result.query
         self._filename = result.path[result.path.rfind('/')+1:]
-        self._file_ext = None if self._filename == None else result.path[result.path.index('.')+1:]
+        self._file_ext = None if self._filename == None else result.path[result.path.find('.')+1:]
         self._fragment = result.fragment
 
     @property
-    def fragment(self):
-        return self._fragment
+    def scheme(self):
+        return self._scheme
 
     @property
     def host(self):
@@ -40,11 +46,29 @@ class Url:
     def path(self):
         return self._path
 
+    @property
+    def port(self):
+        return self._port
+
+    @property
+    def query(self):
+        return self._query
+
+    @property
+    def fragment(self):
+        return self._fragment
+
     # generate a standard url to feed the request method: get、post、put、head
-    # TODO: finish it tomorrow!
     @property
     def canonical_url(self):
-        pass
+        urlString = self._scheme+"://"+self._host+":"+str(self._port)+self._path
+        if self._params != '':
+            urlString += ";"+self._params
+        if self._query != '':
+            urlString += "?"+self._query
+        if self._fragment != '':
+            urlString += "#"+self._fragment
+        return urlString
 
     def __str__(self):
         return "the 6-elements tuple is: %s %s %s %s %s %s"%(self._host, str(self._port), self._path, self._filename, self._file_ext, self._params)
@@ -52,7 +76,6 @@ class Url:
 
 if __name__=='__main__':
     # some tests for url class
-    t_url = 'http://www.goodle.com/index.pphjp?a=2134&rb=414#fdfo'
+    t_url = 'www.goodle.com/llou/3432/index.pphjp?a=2134&rb=414'
     xt= Url(t_url)
-    print(xt, ' additional: ',xt.fragment)
     print("original url string: ",xt.canonical_url)
