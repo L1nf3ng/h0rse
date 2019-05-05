@@ -39,7 +39,7 @@ class Request:
     # some common setter/getter for properties, some setters associated with headers must update in time!
     @property
     def url(self):
-        return self._url
+        return self._url.canonical_url
 
     @url.setter
     def url(self, url):
@@ -91,7 +91,7 @@ class Request:
         outstr +="Host:{}\r\n".format(self._url.host)
         for key in self._headers.keys():
                 outstr += "{}: {}\r\n".format(key, self._headers.get(key))
-        outstr += "\r\n\r\n"
+        outstr += "\r\n"
         if self._method=="POST" :
             outstr+="{}\r\n".format(self._post_data)
         return outstr

@@ -4,11 +4,13 @@
 # 优化点：解析DOM树时采用事件驱动模型，
 
 from lxml.etree import parse, HTMLParser
-import requests
+from Core import Wheel
+from Configs import Config
+from Http.Url import Url
 import time
 
 
-root_url = 'http://www.bandao.cn'
+root_url = 'www.bandao.cn'
 store_file = 'tmp/index.html'
 
 # frame 和 iframe 傻傻分不清
@@ -17,11 +19,12 @@ Origin_Attrs = ['href', 'src', 'data', 'action']
 
 def retrieve_page(url):
     # 打开文件时必须设置一下encoding，否则在win平台下默认以gbk来解析
-    with open(store_file,'w',encoding= 'utf8') as file:
-        rep = requests.get(url)
+    with open(store_file,'w',encoding= Config.DEFAULT_ENCODING) as file:
         # 许多网页默认返回的encoding是iso-8859-1，这是一种单字节的编码形式，实际编码还得依据charset说明。
-        text = rep.content.decode('utf-8')
-        file.write(text)
+#        text = rep.content.decode('utf-8')
+        t = Wheel.Wheel(url, 'get')
+        r = t.send()
+        file.write(r.body)
 
 class MyParser:
     def __init__(self):
@@ -75,16 +78,22 @@ class MyParser:
 
 def parse_with_officialParser(file):
     global Origin_Attrs
-    res2= set()
+    res2,subdomains = set(),set()
     parser= HTMLParser()
     doc = parse(file,parser)
     for rule in Origin_Attrs:
         temp = doc.xpath('//@%s'%rule)
         res2.update(temp)
-    return res2
+    for url in res2:
+        subdomains.add(Url(url).host)
+    return res2, subdomains
 
 if __name__ == '__main__':
+
+    retrieve_page(root_url)
     # now we start to parse the document
+
+    '''
     past = time.time()
     t= MyParser()
     parser = HTMLParser(target=t)
@@ -92,14 +101,22 @@ if __name__ == '__main__':
     print('result len: ',len(res1))
     now = time.time()
     print("we cost %ss time!"%(now-past))
+'''
 
     past = time.time()
-    res2 = parse_with_officialParser(store_file)
+    res2,domains = parse_with_officialParser(store_file)
     print('result len: ',len(res2))
     now = time.time()
     print("we cost %ss time!"%(now-past))
 
+    print('We get these sub domains:')
+    for domain in domains:
+        print(domain)
+
+'''
     def out_invalid(res):
         for x in res:
             if not x.startswith('http://') and not x.startswith('https://'):
                 print(x)
+'''
+

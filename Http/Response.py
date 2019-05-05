@@ -45,15 +45,16 @@ class Response:
             # 1st, check the headers
             if "Content-Type" in self._headers.keys():
                 # in the re pattern, check the alpha character and '-' symbol
-                act_charset= re.search('charset=\s*?([\w-]+)',self._headers.get('Content-Type')).group(1)
-                # 2nd, check the body
-                if act_charset is None:
-                    # first, transform rawbody to text class
-                    text = raw_body.decode(self.charset)
-                    act_charset = re.search('<meta.*?content=".*?charset=\s*?([\w-]+)"',text).group(1)
+                charset_mo = re.search('charset=\s*?([\w-]+)',self._headers.get('Content-Type'))
+                if charset_mo != None:
+                    act_charset = charset_mo.group(1)
+                    # we've found charset in headers
                     act_charset = act_charset.strip()
-                # we've found charset in headers
+                # 2nd, check the body
                 else:
+                    # first, transform rawbody to text class
+                    text = raw_body.decode(charset)
+                    act_charset = re.search('<meta.*?content=".*?charset=\s*?([\w-]+)"',text).group(1)
                     act_charset = act_charset.strip()
         else:
             act_charset = charset
@@ -98,7 +99,7 @@ class Response:
         outstr += "HTTP/1.1 {} {}\r\n".format(self._code, self._msg)
         for key in self._headers.keys():
             outstr += "{}: {}\r\n".format(key,self._headers.get(key))
-        outstr += "\r\n\r\n"
+        outstr += "\r\n"
         outstr += self._body
         return outstr
 

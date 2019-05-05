@@ -76,6 +76,7 @@ class Url:
 
 if __name__=='__main__':
     # some tests for url class
-    t_url = 'www.goodle.com/llou/3432/index.pphjp?a=2134&rb=414'
+    t_url = 'hk.www.goodle.com/llou/3432/index.pphjp?a=2134&rb=414'
     xt= Url(t_url)
     print("original url string: ",xt.canonical_url)
+    print("original url header: ",xt.host)
