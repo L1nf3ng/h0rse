@@ -46,16 +46,20 @@ class Response:
             if "Content-Type" in self._headers.keys():
                 # in the re pattern, check the alpha character and '-' symbol
                 charset_mo = re.search('charset=\s*?([\w-]+)',self._headers.get('Content-Type'))
+                # we've found charset in headers
                 if charset_mo != None:
-                    act_charset = charset_mo.group(1)
-                    # we've found charset in headers
-                    act_charset = act_charset.strip()
+                    act_charset = charset_mo.group(1).strip()
+
                 # 2nd, check the body
                 else:
                     # first, transform rawbody to text class
                     text = raw_body.decode(charset)
-                    act_charset = re.search('<meta.*?content=".*?charset=\s*?([\w-]+)"',text).group(1)
-                    act_charset = act_charset.strip()
+                    charset_mo = re.search('<meta.*?content=".*?charset=\s*?([\w-]+)"',text)
+                    # we've found charset in body
+                    if charset_mo != None:
+                        act_charset = charset_mo.group(1).strip()
+                    else:
+                        act_charset = DEFAULT_ENCODING
         else:
             act_charset = charset
         # get the real body

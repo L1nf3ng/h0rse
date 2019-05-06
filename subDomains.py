@@ -78,19 +78,35 @@ class MyParser:
 
 def parse_with_officialParser(file):
     global Origin_Attrs
+    global root_url
     res2,subdomains = set(),set()
     parser= HTMLParser()
     doc = parse(file,parser)
     for rule in Origin_Attrs:
         temp = doc.xpath('//@%s'%rule)
         res2.update(temp)
+    to_remove = []
+    for url in res2:
+        if not url.startswith('http://') and not url.startswith('https://'):
+            to_remove.append(url)
+
+    for x  in to_remove:
+        res2.remove(x)
+        res2.add(root_url+'/'+x)
     for url in res2:
         subdomains.add(Url(url).host)
     return res2, subdomains
 
+
+def out_invalid(res):
+    for x in res:
+        if not x.startswith('http://') and not x.startswith('https://'):
+            print(x)
+
+
 if __name__ == '__main__':
 
-    retrieve_page(root_url)
+    # retrieve_page(root_url)
     # now we start to parse the document
 
     '''
@@ -109,14 +125,12 @@ if __name__ == '__main__':
     now = time.time()
     print("we cost %ss time!"%(now-past))
 
-    print('We get these sub domains:')
-    for domain in domains:
-        print(domain)
+    print("here're some invalid urls:")
+    out_invalid(res2)
 
-'''
-    def out_invalid(res):
-        for x in res:
-            if not x.startswith('http://') and not x.startswith('https://'):
-                print(x)
-'''
+#    print('We get these sub domains:')
+#    for domain in domains:
+#        print(domain)
+
+
 
