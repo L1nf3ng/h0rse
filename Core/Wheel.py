@@ -49,10 +49,11 @@ class Wheel:
         response = Response.toResponse(reply)
         return response
 
-
+'''
 if __name__ =='__main__':
     target = '10.10.10.127:8080/WebGoat/login'
     t = Wheel(target, 'get', proxy='http://127.0.0.1:8080')
     r = t.send()
+'''
 #    print(r)
 
