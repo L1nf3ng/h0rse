@@ -8,7 +8,7 @@
 '''
 
 
-from lxml.etree import parse, HTMLParser
+from lxml.etree import parse, HTMLParser, fromstring
 from Core import Wheel
 from Configs import Config
 from Http.Url import Url
@@ -17,10 +17,6 @@ import time
 
 ROOT_URL = 'www.bandao.cn'
 STORE_FILE = '../tmp/index.html'
-
-# frame 和 iframe 傻傻分不清
-Origin_Tags = ['a','img','link','script','iframe','frame','form','object']
-Origin_Attrs = ['href', 'src', 'data', 'action']
 
 
 ############################################################
@@ -68,21 +64,18 @@ class MyParser:
     # 定制化处理表单内url
     def _handle_form_tag_start(self,tag,attrs):
         action = attrs.get('action', None)
-#        print("WE get into a form tag, and the url is ",action)
         if action is not None:
             self._urls.add(action)
-#            print("Successful adding")
 
     def _handle_form_tag_end(self,tag):
         pass
-#        print("Went out a form tag. Just now, we didn't make a request.")
 
 
 ############################################################
 # 使用Wheel类发送请求，收到并解析请求。
 # 写入文件，方便调试，后期直接装入内存。
 #
-# %% 后期移除，或送到其他py中 %%
+# %% 后期移除，或放到其他py中 %%
 ############################################################
 def retrieve_page(url):
     # 打开文件时必须设置一下encoding，否则在win平台下默认以gbk来解析
@@ -98,9 +91,10 @@ def retrieve_page(url):
 # 用xpath检索DOM树的函数
 # 这里预留了一个全Url类组成的集合类Url_set，后期要用时可以return一下
 ############################################################
-def parse_with_xpath(file):
-    global Origin_Attrs
-    global ROOT_URL
+def getURL_with_xpath(file):
+    # frame 和 iframe 傻傻分不清
+    Origin_Attrs = ['a','img','link','script','iframe','frame','form','object']
+    ROOT_URL = ['href', 'src', 'data', 'action']
     Url_set, res2,domains = set(),set(),set()
     parser= HTMLParser()
     doc = parse(file,parser)
@@ -125,6 +119,42 @@ def parse_with_xpath(file):
         domains.add(url.host)
     return res2, domains
 
+
+############################################################
+# 用xpath检索DOM树中的所有的form
+# 并对这些form下的input子节点自动填值并构造post请求
+# 其实这个方法并不适合web2.0
+############################################################
+def auto_fill(name):
+    # TODO: finish it tonight or tomorrow!
+    return 'lilinfeng'
+
+
+def getForm_with_xpath(html):
+    ps = HTMLParser()
+    doc = fromstring(html, ps)
+    forms = doc.xpath('//form')
+    # there're no forms
+    if forms == []:
+        return None
+    else:
+        for form in forms:
+            inputs = form.xpath('./input')
+            # here exists input labels
+            params = {}
+            if inputs != []:
+                for input in inputs:
+                    name = input.xpath('./@name')
+                    if name == []:
+                        continue
+                    p_name = name[0]
+                    value = input.xpath('./@value')
+                    if value == []:
+                        p_val = auto_fill(p_name)
+                    else:
+                        p_val = value[0]
+                    params.update({p_name:p_val})
+            return params
 
 ############################################################
 # 描述：
@@ -192,6 +222,11 @@ def sanitize_urls(dirty_urls):
     return clean_urls
 
 
+############################################################
+# 输出不符合标准格式的url类
+#
+# %% 后期移除，后放到测试代码中 %%
+############################################################
 def out_invalid(res):
     for x in res:
         if not x.startswith('http://') and not x.startswith('https://'):
@@ -204,7 +239,7 @@ if __name__ == '__main__':
     # now we start to parse the document
 
     past = time.time()
-    res2,domains = parse_with_xpath(STORE_FILE)
+    res2,domains = getURL_with_xpath(STORE_FILE)
     print('result len: ',len(res2))
     now = time.time()
     print("we cost %ss time!"%(now-past))
