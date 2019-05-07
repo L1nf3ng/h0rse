@@ -1,7 +1,12 @@
 # -*- encoding:utf-8 -*-
-# 主要功能：
-# 捕获网站页面并解析获得所有的URL（暂时不包含分析、过滤）
-# 优化点：解析DOM树时采用事件驱动模型。
+
+'''
+    主要功能：
+    捕获网站页面并解析获得所有的URL（暂时不包含分析、过滤）
+    优化点：解析DOM树时采用事件驱动模型。
+    功能遗漏点：细粒度的清洗控制，哪些类型的url不需要清洗
+'''
+
 
 from lxml.etree import parse, HTMLParser
 from Core import Wheel
@@ -137,7 +142,7 @@ def are_they_similar(urla, urlb):
         return -1
     elif urla.path != urlb.path:
         return -1
-    else:
+    if urla.params != dict() or urlb.params != dict():
         # analyse their parameters relationship
         # transform their parameter name into two categories
         s1 = set(urla.params.keys())
@@ -146,7 +151,7 @@ def are_they_similar(urla, urlb):
         # 两个集合取交集来判断包含关系:
         if temp == set():    # 空集合代表绝不包含
             return -1
-        elif len(s1) == len(temp) and len(s1) == len(s2): # 完全相同
+        elif len(s1) == len(temp) and len(s1) == len(s2): # 完全同类
             return 0
         elif len(temp) < len(s1) and len(temp) < len(s2): # 部分参数重合，但还是不同的url
             return -1
@@ -154,6 +159,8 @@ def are_they_similar(urla, urlb):
             return 1
         else:   # 包含关系，右边包含左边
             return 2
+    else:
+        return 0
 
 
 ############################################################
@@ -162,10 +169,27 @@ def are_they_similar(urla, urlb):
 #   1. 多类url的去似去含
 #   2. 表单的自动填充，生成url，也即post类url
 # 参数：
-#   未经清晰的Http.Url.Url集合
+#   输入--未经清洗的Http.Url.Url集合
 ############################################################
 def sanitize_urls(dirty_urls):
-    pass
+    # the first implements: we just sanitize the similar urls
+    clean_urls = [dirty_urls[0]]
+    for urld in dirty_urls:
+        # 逻辑错误哟，应该检查完所有clean_url后再改变，否则可能重复添加
+        AppendIt, ToDelete = True, None
+        for urlc in clean_urls:
+            temp = are_they_similar(urld,urlc)
+            # 有相同url或包含某条url，则添加（删除）；否则添加之
+            if temp == 0:
+                AppendIt = False
+            if temp == 1:
+                # append the left one, ie. dirty_url
+                ToDelete = urlc
+        if AppendIt:
+            clean_urls.append(urld)
+        if ToDelete!= None:
+            clean_urls.remove(ToDelete)
+    return clean_urls
 
 
 def out_invalid(res):
