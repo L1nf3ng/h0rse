@@ -1,7 +1,7 @@
 # -*- encoding:utf-8 -*-
 # 主要功能：
 # 捕获网站页面并解析获得所有的URL（暂时不包含分析、过滤）
-# 优化点：解析DOM树时采用事件驱动模型，
+# 优化点：解析DOM树时采用事件驱动模型。
 
 from lxml.etree import parse, HTMLParser
 from Core import Wheel
@@ -76,6 +76,8 @@ class MyParser:
 ############################################################
 # 使用Wheel类发送请求，收到并解析请求。
 # 写入文件，方便调试，后期直接装入内存。
+#
+# %% 后期移除，或送到其他py中 %%
 ############################################################
 def retrieve_page(url):
     # 打开文件时必须设置一下encoding，否则在win平台下默认以gbk来解析
@@ -123,16 +125,18 @@ def parse_with_xpath(file):
 # 描述：
 #   1. 功能：去含、去似，因为对于渗透测试，这类url只需要测试一项就行了
 #   2. 参数：Http.Url.Url class
+#   3. 返回值，代表两者的不同状态：
+#       -1 <=> 完全不同;0 <=> 两者相同;1 <=> 左边大;2<=> 右边大
 ############################################################
 def are_they_similar(urla, urlb):
     if urla.scheme != urlb.scheme:
-        return False
+        return -1
     elif urla.host != urlb.host:
-        return False
+        return -1
     elif urla.port != urlb.port:
-        return False
+        return -1
     elif urla.path != urlb.path:
-        return False
+        return -1
     else:
         # analyse their parameters relationship
         # transform their parameter name into two categories
@@ -141,11 +145,15 @@ def are_they_similar(urla, urlb):
         temp = s1 & s2
         # 两个集合取交集来判断包含关系:
         if temp == set():    # 空集合代表绝不包含
-            return False
-        elif len(temp) < len(s1) or len(temp) < len(s2): # 部分参数重合，但还是不同的url
-            return False
-        else:   #   len(temp)==len(s1) or len(temp)==len(s2)，包含关系
-            return True
+            return -1
+        elif len(s1) == len(temp) and len(s1) == len(s2): # 完全相同
+            return 0
+        elif len(temp) < len(s1) and len(temp) < len(s2): # 部分参数重合，但还是不同的url
+            return -1
+        elif len(temp) == len(s2): # 包含关系，左边包含右边
+            return 1
+        else:   # 包含关系，右边包含左边
+            return 2
 
 
 ############################################################
@@ -153,8 +161,10 @@ def are_they_similar(urla, urlb):
 # 功能：
 #   1. 多类url的去似去含
 #   2. 表单的自动填充，生成url，也即post类url
+# 参数：
+#   未经清晰的Http.Url.Url集合
 ############################################################
-def extract_valuable_urls():
+def sanitize_urls(dirty_urls):
     pass
 
 

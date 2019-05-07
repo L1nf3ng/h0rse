@@ -14,15 +14,16 @@ import unittest
 
 
 class TestIt(unittest.TestCase):
-    def testRun(self,urla,urlb):
+    def testSimilarity(self,urla,urlb):
+        result = are_they_similar(urla,urlb)
         try:
-            self.assertTrue(are_they_similar(urla,urlb),
-                        "{} {} they're not similar".format(urla.original_url,urlb.original_url))
+            self.assertEqual(result, -1)
         except Exception as ext:
             print(ext)
+
 
 if __name__ == '__main__' :
     base = 'www.bat.com/index.php'
     t = TestIt()
-    t.testRun(Url(base+'?a=1'), Url(base+'?b=3'))
-    t.testRun(Url(base+"?a=3"), Url(base+"?a=2&b=4"))
+    t.testSimilarity(Url(base+'?b=4'), Url(base+'?b=3'))
+    t.testSimilarity(Url(base+"?a=3"), Url(base+"?a=2&b=4"))

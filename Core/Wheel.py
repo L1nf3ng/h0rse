@@ -5,7 +5,10 @@
 @author: d00ms(--)
 @file: Wheel.py
 @time: 2019-5-5 10:59
-@desc: A sender and receiver worked for http protocol.
+@desc: HTTP请求、响应协议内容下的基本运行单元
+@遗漏功能点：
+    1. redirect设置，是否follow，跟踪几层
+    2. Http Basic认证，https的兼容性
 '''
 
 from Http import Url
