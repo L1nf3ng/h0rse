@@ -11,10 +11,11 @@
 
 from Configs import Config
 
-from urllib.parse import  urlparse
+from urllib.parse import urlparse, parse_qs
 
 class Url:
     def __init__(self, urlString,encoding=Config.DEFAULT_ENCODING):
+        self._original_url = urlString
         # 先补齐协议名、端口名
         if not urlString.startswith('http://') and not urlString.startswith('https://'):
             urlString = 'http://'+urlString
@@ -35,6 +36,10 @@ class Url:
         self._fragment = result.fragment
 
     @property
+    def original_url(self):
+        return self._original_url
+
+    @property
     def scheme(self):
         return self._scheme
 
@@ -53,6 +58,11 @@ class Url:
     @property
     def query(self):
         return self._query
+
+    # 返回类型是字典{参数名:值(list)}
+    @property
+    def params(self):
+        return parse_qs(self._query)
 
     @property
     def fragment(self):

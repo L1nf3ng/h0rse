@@ -17,19 +17,6 @@ STORE_FILE = '../tmp/index.html'
 Origin_Tags = ['a','img','link','script','iframe','frame','form','object']
 Origin_Attrs = ['href', 'src', 'data', 'action']
 
-############################################################
-# 使用Wheel类发送请求，收到并解析请求。
-# 写入文件，方便调试，后期直接装入内存。
-############################################################
-def retrieve_page(url):
-    # 打开文件时必须设置一下encoding，否则在win平台下默认以gbk来解析
-    global STORE_FILE
-    with open(STORE_FILE,'w',encoding= Config.DEFAULT_ENCODING) as file:
-        # 许多网页默认返回的encoding是iso-8859-1，这是一种单字节的编码形式，实际编码还得依据charset说明。
-        t = Wheel.Wheel(url, 'get')
-        r = t.send()
-        file.write(r.body)
-
 
 ############################################################
 #
@@ -87,6 +74,20 @@ class MyParser:
 
 
 ############################################################
+# 使用Wheel类发送请求，收到并解析请求。
+# 写入文件，方便调试，后期直接装入内存。
+############################################################
+def retrieve_page(url):
+    # 打开文件时必须设置一下encoding，否则在win平台下默认以gbk来解析
+    global STORE_FILE
+    with open(STORE_FILE,'w',encoding= Config.DEFAULT_ENCODING) as file:
+        # 许多网页默认返回的encoding是iso-8859-1，这是一种单字节的编码形式，实际编码还得依据charset说明。
+        t = Wheel.Wheel(url, 'get')
+        r = t.send()
+        file.write(r.body)
+
+
+############################################################
 # 用xpath检索DOM树的函数
 # 这里预留了一个全Url类组成的集合类Url_set，后期要用时可以return一下
 ############################################################
@@ -118,6 +119,45 @@ def parse_with_xpath(file):
     return res2, domains
 
 
+############################################################
+# 描述：
+#   1. 功能：去含、去似，因为对于渗透测试，这类url只需要测试一项就行了
+#   2. 参数：Http.Url.Url class
+############################################################
+def are_they_similar(urla, urlb):
+    if urla.scheme != urlb.scheme:
+        return False
+    elif urla.host != urlb.host:
+        return False
+    elif urla.port != urlb.port:
+        return False
+    elif urla.path != urlb.path:
+        return False
+    else:
+        # analyse their parameters relationship
+        # transform their parameter name into two categories
+        s1 = set(urla.params.keys())
+        s2 = set(urlb.params.keys())
+        temp = s1 & s2
+        # 两个集合取交集来判断包含关系:
+        if temp == set():    # 空集合代表绝不包含
+            return False
+        elif len(temp) < len(s1) or len(temp) < len(s2): # 部分参数重合，但还是不同的url
+            return False
+        else:   #   len(temp)==len(s1) or len(temp)==len(s2)，包含关系
+            return True
+
+
+############################################################
+# 提取有价值的url
+# 功能：
+#   1. 多类url的去似去含
+#   2. 表单的自动填充，生成url，也即post类url
+############################################################
+def extract_valuable_urls():
+    pass
+
+
 def out_invalid(res):
     for x in res:
         if not x.startswith('http://') and not x.startswith('https://'):
@@ -129,16 +169,6 @@ if __name__ == '__main__':
     # retrieve_page(root_url)
     # now we start to parse the document
 
-    '''
-    past = time.time()
-    t= MyParser()
-    parser = HTMLParser(target=t)
-    res1 = parse(store_file,parser)
-    print('result len: ',len(res1))
-    now = time.time()
-    print("we cost %ss time!"%(now-past))
-    '''
-
     past = time.time()
     res2,domains = parse_with_xpath(STORE_FILE)
     print('result len: ',len(res2))
@@ -148,6 +178,16 @@ if __name__ == '__main__':
 #    print("here're some invalid urls:")
 #    out_invalid(res2)
 
-#    print('We get these sub domains:')
-#    for domain in domains:
-#        print(domain)
+    print('We get these sub domains: it\'s totally {} domains'.format(len(domains)))
+    for domain in domains:
+        print(domain)
+
+    '''
+    past = time.time()
+    t= MyParser()
+    parser = HTMLParser(target=t)
+    res1 = parse(store_file,parser)
+    print('result len: ',len(res1))
+    now = time.time()
+    print("we cost %ss time!"%(now-past))
+    '''
