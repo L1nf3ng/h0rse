@@ -127,7 +127,21 @@ def getURL_with_xpath(file):
 ############################################################
 def auto_fill(name):
     # TODO: finish it tonight or tomorrow!
-    return 'lilinfeng'
+    input_value_dict={
+        'badb0y':['username','user','userid','nickname','name'],
+        '123erty':['password','pass','pwd'],
+        'tenaborn@bbb.com':['email','mail','usermail'],
+        '13166771122':['mobile','telephone'],
+        'h0rse is running for vulns.':['content','text','query','data','comment'],
+        'www.test.com':['domain'],
+        'http://h0rse.home.cn':['link','url','website']
+    }
+    p_val = 'h0rse'
+    for key in input_value_dict.keys():
+        # get the name_list from key
+        if name in input_value_dict.get(key):
+            p_val = key
+    return p_val
 
 
 def getForm_with_xpath(html):

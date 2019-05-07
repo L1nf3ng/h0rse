@@ -28,7 +28,7 @@ class TestIt(unittest.TestCase):
         return getForm_with_xpath(html)
 
 
-if __name__ == '__main__' :
+if __name__ == '__main__':
     base = 'www.bat.com/index.php'
     t = TestIt()
     t.testSimilarity(Url(base+'?b=4'), Url(base+'?b=3'))
