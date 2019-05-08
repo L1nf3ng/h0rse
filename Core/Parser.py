@@ -91,16 +91,16 @@ def retrieve_page(url):
 # 用xpath检索DOM树的函数
 # 这里预留了一个全Url类组成的集合类Url_set，后期要用时可以return一下
 ############################################################
-def getURL_with_xpath(file):
+def getURL_with_xpath(html):
     # frame 和 iframe 傻傻分不清
-    Origin_Attrs = ['a','img','link','script','iframe','frame','form','object']
-    ROOT_URL = ['href', 'src', 'data', 'action']
-    Url_set, res2,domains = set(),set(),set()
+    Origin_Attrs = ['href', 'src', 'data', 'action']
+    ROOT_URL = 'www.bandao.cn'
+    Url_set, res2,domains = [],[],[]
     parser= HTMLParser()
-    doc = parse(file,parser)
+    doc = fromstring(html,parser)
     for rule in Origin_Attrs:
         temp = doc.xpath('//@%s'%rule)
-        res2.update(temp)
+        res2.extend(temp)
     # get the incorrect urls
     to_remove = []
     for url in res2:
@@ -111,13 +111,13 @@ def getURL_with_xpath(file):
         res2.remove(x)
         if not x.startswith('/'):
             x = '/'+x
-        res2.add(ROOT_URL+x)
+        res2.append(ROOT_URL+x)
     # translate the normal url to Url class
     for url in res2:
-        Url_set.add(Url(url))
+        Url_set.append(Url(url))
     for url in Url_set:
-        domains.add(url.host)
-    return res2, domains
+        domains.append(url.host)
+    return Url_set
 
 
 ############################################################
@@ -152,6 +152,7 @@ def getForm_with_xpath(html):
     if forms == []:
         return None
     else:
+        results = []
         for form in forms:
             inputs = form.xpath('./input')
             # here exists input labels
@@ -168,7 +169,10 @@ def getForm_with_xpath(html):
                     else:
                         p_val = value[0]
                     params.update({p_name:p_val})
-            return params
+            if params != {}:
+                results.append(params)
+    return results
+
 
 ############################################################
 # 描述：

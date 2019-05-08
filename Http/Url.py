@@ -81,7 +81,7 @@ class Url:
         return urlString
 
     def __str__(self):
-        return "the 6-elements tuple is: %s %s %s %s %s %s"%(self._host, str(self._port), self._path, self._filename, self._file_ext, self._params)
+        return self.canonical_url
 
 
 if __name__=='__main__':

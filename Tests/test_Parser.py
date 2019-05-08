@@ -11,6 +11,7 @@
 from Core.Parser import are_they_similar,sanitize_urls, getForm_with_xpath
 from Http.Url import Url
 import unittest
+from urllib.parse import urlencode
 
 
 class TestIt(unittest.TestCase):
@@ -43,21 +44,5 @@ if __name__ == '__main__':
     print([x.canonical_url for x in dirty_urls])
     print([x.canonical_url for x in clean_urls])
 
-    html1 = '''\
-<form>
- First name:<br>
-<input type="text" name="firstname">
-<br>
- Last name:<br>
-<input type="text" name="lastname">
-</form>'''
-    print(t.testAutoFill(html1))
-
-    html2 = '''\
-<form>
-<input type="radio" name="sex" value="male" checked>Male
-<br>
-<input type="radio" name="sex" value="female">Female
-</form> '''
-    print(t.testAutoFill(html2))
-
+    result = t.testAutoFill('../Temp/index.html')
+    print([urlencode(yy) for yy in result])
