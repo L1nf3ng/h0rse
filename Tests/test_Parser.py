@@ -8,7 +8,7 @@
 @desc: Test Core.Parser Module
 '''
 
-from Core.Parser import are_they_similar,sanitize_urls, getForm_with_xpath
+from Core.Parser import are_they_similar,sanitize_urls
 from Http.Url import Url
 import unittest
 from urllib.parse import urlencode
@@ -45,4 +45,4 @@ if __name__ == '__main__':
     print([x.canonical_url for x in clean_urls])
 
     result = t.testAutoFill('../Temp/index.html')
-    print([urlencode(yy) for yy in result])
+    print(result)

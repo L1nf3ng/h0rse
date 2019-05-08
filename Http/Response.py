@@ -17,10 +17,11 @@ from Configs.Config import  DEFAULT_ENCODING
 def toResponse(response):
     code = response.status_code
     msg = response.reason
+    req_url = response.url
     headers = response.headers
     charset = response.encoding
     raw_body = response.content
-    return Response(code, msg, headers, charset, raw_body)
+    return Response(code, msg, req_url, headers, charset, raw_body)
 
 class Response:
     ##################################################################
@@ -28,14 +29,18 @@ class Response:
     # @desc: raw_body这里传入的是bytes类，不能直接使用re下的匹配函数，
     #        因为re模块的匹配函数都是以str类输入，故需要处理一下
     ##################################################################
-    def __init__(self,code, msg, headers, charset, raw_body):
+    def __init__(self,code, msg, url, headers, charset, raw_body):
         self._code = code
         self._msg = msg
+        self._req_url = url
         self._headers ={}
         self._headers.update(headers)
         # restore the rawbody in case you need to re-parse it in other form
         self._raw_body = raw_body
-        self._charset,self._body = self.charset_handler(charset, raw_body)
+        try:
+            self._charset,self._body = self.charset_handler(charset, raw_body)
+        except Exception:
+            print('Exception comes from: ',self._req_url)
         # extract cookies from header to use it easily
         self._cookies = self.cookies_handler(headers)
 
@@ -52,16 +57,19 @@ class Response:
 
                 # 2nd, check the body
                 else:
-                    # first, transform rawbody to text class
-                    text = raw_body.decode(charset)
-                    charset_mo = re.search('<meta.*?content=".*?charset=\s*?([\w-]+)"',text)
-                    # we've found charset in body
-                    if charset_mo != None:
-                        act_charset = charset_mo.group(1).strip()
+                    if charset != None:
+                        # first, transform rawbody to text class
+                        text = raw_body.decode(charset)
+                        charset_mo = re.search('<meta.*?content=".*?charset=\s*?([\w-]+)"',text)
+                        # we've found charset in body
+                        if charset_mo != None:
+                            act_charset = charset_mo.group(1).strip()
+                        else:
+                            act_charset = DEFAULT_ENCODING
                     else:
-                        act_charset = DEFAULT_ENCODING
+                        act_charset=DEFAULT_ENCODING
         else:
-            act_charset = charset
+            act_charset = DEFAULT_ENCODING
         # get the real body
         act_body = raw_body.decode(act_charset)
         return act_charset,act_body
@@ -76,6 +84,10 @@ class Response:
     @property
     def code(self):
         return self._code
+
+    @property
+    def req_url(self):
+        return self._req_url
 
     @property
     def headers(self):

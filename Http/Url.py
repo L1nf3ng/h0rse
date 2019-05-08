@@ -83,6 +83,11 @@ class Url:
     def __str__(self):
         return self.canonical_url
 
+    def __eq__(self, other):
+        if isinstance(other, Url):
+            return self.canonical_url == other.canonical_url
+        else:
+            return object.__eq__(self, other)
 
 if __name__=='__main__':
     # some tests for url class

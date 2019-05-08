@@ -41,6 +41,7 @@ class Request:
     def url(self):
         return self._url.canonical_url
 
+
     @url.setter
     def url(self, url):
         if isinstance(url,Url):
