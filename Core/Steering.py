@@ -33,7 +33,7 @@ class Steering:
         '''
         # self._task_granary = deque()
         self._history = deque()
-
+        self._failure_req = deque()
 
     '''
         需要解决一下回路问题，也就是说在爬A网址时进入了B，在B中又进入了A，如此会造成大面积重复url
@@ -46,27 +46,42 @@ class Steering:
     def run(self,start_url):
         # 单线程模式
         # 为队列添加初始url
+        ignore_file_ext = ['ico', 'jpg', 'jpeg', 'gif', 'png', 'bmp', 'css', 'zip', 'rar', 'ttf']
         self._task_queue.append((Url(start_url),0))
         # 先写一个完整的请求—响应—解析—更新的过称，然后循环
         while len(self._task_queue)!=0:
             base_url,current_depth = self._task_queue.popleft()
             if current_depth == self._probe_depth:
                 break
+            # 两次过滤，一次在任务队列弹出时，另一次在添加入任务队列时。
+            if base_url.file_ext in ignore_file_ext:
+                continue
             # send request
             self._history.append(base_url)
             wheel = Wheel(base_url, 'get')
             # get response
-            reply = wheel.send()
+            try:
+                reply = wheel.send()
+            except Exception as ext:
+                # if requests fail, we should ignore the following parsing process.
+                print('Connection exception happened in: {}'.format(base_url.original_url))
+                self._failure_req.append(base_url)
+                continue
             # 当前只处理正常返回200的页面，而不管301、302等重定向页面
-            if reply.code != 200:
+            if reply.code != 200 or reply.body=='':
                 continue
             Urls = getURL_with_xpath(reply.body, base_url)
             # filter out useful urls
             newUrls = sanitize_urls(Urls)
+
             # update the tasks and history
             for url in newUrls:
                 if url not in self._history:
                     self._task_queue.append((url,current_depth+1))
+
+            print("we've searched {} urls, current depth is {}".format(len(self._history), current_depth))
+            print("there're {} urls left".format(len([x[0] for x in self._task_queue])))
+
 
     @property
     def history(self):
@@ -79,7 +94,7 @@ class Steering:
 
 if __name__ == '__main__':
     t = Steering()
-    t.run('www.bandao.cn')
+    t.run('http://www.bandao.cn')
     print("we've searched {} urls".format(len(t.history)))
     print("there're {} urls left".format(len([x[0] for x in t.task_queue])))
 

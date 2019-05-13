@@ -25,8 +25,6 @@ class TestIt(unittest.TestCase):
     def testSanitization(self, dirty_urls):
         return sanitize_urls(dirty_urls)
 
-    def testAutoFill(self,html):
-        return getForm_with_xpath(html)
 
 
 if __name__ == '__main__':
@@ -36,13 +34,13 @@ if __name__ == '__main__':
     t.testSimilarity(Url(base+"?a=3"), Url(base+"?a=2&b=4"))
     t.testSimilarity(Url(base), Url(base))
     t.testSimilarity(Url(base), Url(base+"?a=2"))
+
+
     dirty_urls = [Url(base),Url(base+'?a=1'),Url(base+'?a=2'),Url(base+'?b=1'),Url(base+'?b=4&a=3'),Url(base+'?b=4&c=2')]
     clean_urls = t.testSanitization(dirty_urls)
-#    for x in clean:
-#        print(x.canonical_url)
     print("dirty urls:")
     print([x.canonical_url for x in dirty_urls])
     print([x.canonical_url for x in clean_urls])
 
-    result = t.testAutoFill('../Temp/index.html')
-    print(result)
+    cleanUrls = t.testSanitization([Url('http://www.bandao.cn/2013css/ipadicon.png')])
+    print(len(cleanUrls))

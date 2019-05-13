@@ -13,6 +13,7 @@ from collections import deque
 from Core.Steering import Steering
 from Http.Url import Url
 
+
 class Tester (unittest.TestCase):
     def testGo(self):
         s = Steering()
@@ -30,3 +31,8 @@ if __name__ == '__main__':
     s1 = {'a','b','c','d','e'}
 
     print(e2 in s2)
+
+    ext_url= 'http://autoimage.bandao.cn:80/up/27/d9/27d91cb3191de42307828151e6dfbd6e_60x60.jpg'
+    t = Steering()
+    t.run(ext_url)
+

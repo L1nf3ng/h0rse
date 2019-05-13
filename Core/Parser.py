@@ -114,11 +114,17 @@ def handle_form_with_xpath(tree):
     forms = tree.xpath('//form')
     # there're no forms
     if forms == []:
-        return None
+        return []
     else:
         results = []
         for form in forms:
-            base_url = form.xpath('./@action')[0]
+            temp = form.xpath('./@action')
+            if temp==[]:
+                # 没有action="abc/123/jdk.php"之类，则直接跳过
+                continue
+            base_url = temp[0]
+            if base_url == '':
+                continue
             inputs = form.xpath('./input')
             # here exists input labels
             params = {}
@@ -166,7 +172,10 @@ def getURL_with_xpath(html, start_url):
         temp = doc.xpath('//@%s'%rule)
         url_list.extend(temp)
     # 2nd Step, add some form urls:
-    url_list.extend(handle_form_with_xpath(doc))
+    try:
+        url_list.extend(handle_form_with_xpath(doc))
+    except Exception as ext:
+        print(ext,' --- current dom-tree don\'t contain forms or correct forms, the url is {}'.format(start_url.original_url))
     # 3rd Step, modify those urls which in wrong-format
     # to_modify stores the url to delete, then add the right-format urls
     to_modify = []
@@ -232,19 +241,26 @@ def are_they_similar(urla, urlb):
 # TODO：加入对静态文件的过滤，特别是图片、媒体类，否则严重影响后面内容的解析
 ############################################################
 def sanitize_urls(dirty_urls):
-    # the first implements: we just sanitize the similar urls
-    clean_urls = [dirty_urls[0]]
+    # firstly, we define the file extension names to ignore
+    # TODO:需要写一个针对js文件的URL提取代码，也即针对body的提取。
+    ignore_file_ext=['ico', 'jpg','jpeg', 'gif', 'png', 'bmp', 'css', 'zip', 'rar', 'ttf']
+    # secondly, we just sanitize the similar urls
+    clean_urls = []
     for urld in dirty_urls:
+        if urld.file_ext in ignore_file_ext:
+            continue
         # 逻辑错误哟，应该检查完所有clean_url后再改变，否则可能重复添加
         AppendIt, ToDelete = True, None
-        for urlc in clean_urls:
-            temp = are_they_similar(urld,urlc)
-            # 有相同url或包含某条url，则添加（删除）；否则添加之
-            if temp == 0:
-                AppendIt = False
-            if temp == 1:
-                # append the left one, ie. dirty_url
-                ToDelete = urlc
+        # clean_urls不为空则查重，为空直接添加
+        if len(clean_urls)!=0:
+            for urlc in clean_urls:
+                temp = are_they_similar(urld,urlc)
+                # 有相同url或包含某条url，则添加（删除）；否则添加之
+                if temp == 0:
+                    AppendIt = False
+                if temp == 1:
+                    # append the left one, ie. dirty_url
+                    ToDelete = urlc
         if AppendIt:
             clean_urls.append(urld)
         if ToDelete!= None:

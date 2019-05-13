@@ -59,6 +59,10 @@ class Url:
     def query(self):
         return self._query
 
+    @property
+    def file_ext(self):
+        return self._file_ext
+
     # 返回类型是字典{参数名:值(list)}
     @property
     def params(self):

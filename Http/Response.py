@@ -45,7 +45,10 @@ class Response:
         self._cookies = self.cookies_handler(headers)
 
     def charset_handler(self,charset, raw_body):
+        #TODO： 首先判断是否有报文，然后再判定其编码形式，实际上这部分可以用chardet模块替代
         # when they are not same, search the headers and body to identify charset
+        if self._headers.get("Content-Length")=='0' and raw_body==b'':
+            return DEFAULT_ENCODING, ''
         if charset != DEFAULT_ENCODING:
             # 1st, check the headers
             if "Content-Type" in self._headers.keys():
@@ -71,7 +74,11 @@ class Response:
         else:
             act_charset = DEFAULT_ENCODING
         # get the real body
-        act_body = raw_body.decode(act_charset)
+        try:
+            act_body = raw_body.decode(act_charset)
+        except:
+            act_charset= 'gbk'
+            act_body = raw_body.decode(act_charset)
         return act_charset,act_body
 
     def cookies_handler(self,headers):
