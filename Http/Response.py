@@ -37,10 +37,14 @@ class Response:
         self._headers.update(headers)
         # restore the rawbody in case you need to re-parse it in other form
         self._raw_body = raw_body
+
         try:
             self._charset,self._body = self.charset_handler(charset, raw_body)
         except Exception:
-            print('Exception comes from: ',self._req_url)
+            print('Exception comes from: {}'.format(self._req_url))
+
+        # deal with the AttributeError in outer loop
+#        self._charset, self._body = self.charset_handler(charset, raw_body)
         # extract cookies from header to use it easily
         self._cookies = self.cookies_handler(headers)
 

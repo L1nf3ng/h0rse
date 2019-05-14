@@ -16,6 +16,8 @@ from Core.Parser import getURL_with_xpath, sanitize_urls
 from collections import deque
 from Http.Url import Url
 
+import traceback
+
 class Steering:
     def __init__(self):
         self._greenlet_num = 5
@@ -47,12 +49,20 @@ class Steering:
         # 单线程模式
         # 为队列添加初始url
         ignore_file_ext = ['ico', 'jpg', 'jpeg', 'gif', 'png', 'bmp', 'css', 'zip', 'rar', 'ttf']
-        self._task_queue.append((Url(start_url),0))
+        special_ext = ['doc','docx','xls','xlsx','csv']
+        if not isinstance(start_url,Url):
+            start_url = Url(start_url)
+            start_url.parent_url = 'https://www.baidu.com'
+        self._task_queue.append((start_url,0))
         # 先写一个完整的请求—响应—解析—更新的过称，然后循环
         while len(self._task_queue)!=0:
             base_url,current_depth = self._task_queue.popleft()
             if current_depth == self._probe_depth:
                 break
+            # 特殊后缀，如可下载文件则跳过检测，但输出url地址
+            if base_url.file_ext in special_ext:
+                print('Downloadable Files: {}'.format(base_url.canonical_url))
+                continue
             # 两次过滤，一次在任务队列弹出时，另一次在添加入任务队列时。
             if base_url.file_ext in ignore_file_ext:
                 continue
@@ -60,17 +70,28 @@ class Steering:
             self._history.append(base_url)
             wheel = Wheel(base_url, 'get')
             # get response
+            '''
+            except AttributeError as ext:
+                print("Response parsing error. Please check the url:{}".format(base_url.original_url))
+                traceback.print_exc()
+                continue
+            '''
             try:
                 reply = wheel.send()
-            except Exception as ext:
+            except Exception:
                 # if requests fail, we should ignore the following parsing process.
-                print('Connection exception happened in: {}'.format(base_url.original_url))
+                print('Connection errors happened in: {}'.format(base_url.original_url))
                 self._failure_req.append(base_url)
                 continue
             # 当前只处理正常返回200的页面，而不管301、302等重定向页面
             if reply.code != 200 or reply.body=='':
                 continue
-            Urls = getURL_with_xpath(reply.body, base_url)
+            # get the dirty Urls, so it's time to add the father url here
+            try:
+                Urls = getURL_with_xpath(reply.body, base_url)
+            except AttributeError as ext:
+                print(ext,' and the source is: {}'.format(reply.req_url))
+                continue
             # filter out useful urls
             newUrls = sanitize_urls(Urls)
 

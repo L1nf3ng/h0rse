@@ -44,11 +44,15 @@ class Wheel:
 
     def send(self):
         request = Request.Request(self._url, self._method)
+        ### TODO: delete it later, a warning handler
+        if self._url.file_ext in ['ico', 'jpg', 'jpeg', 'gif', 'png', 'bmp', 'css', 'zip', 'rar', 'ttf']:
+            print("这里我们没有处理干净，出错的url是{}，它的父url是{}".format(self._url.original_url,self._url.parent_url.original_url))
+        ###
         req_meth = getattr(requests, self._method)
         if self._method == 'post':
-            reply = req_meth(url=request.url, headers=request.headers, data=self._data)
+            reply = req_meth(url=request.url, headers=request.headers, data=self._data, allow_redirects= False, timeout=2)
         else:
-            reply = req_meth(url=request.url, headers=request.headers)
+            reply = req_meth(url=request.url, headers=request.headers,  allow_redirects= False, timeout=2)
         response = Response.toResponse(reply)
         return response
 

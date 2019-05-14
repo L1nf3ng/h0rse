@@ -35,6 +35,17 @@ class Url:
         self._file_ext = None if self._filename == None else result.path[result.path.find('.')+1:]
         self._fragment = result.fragment
 
+    # TODO：DEBUG，为了找出问题根源，这里引入一个特殊的属性，父-url
+    @property
+    def parent_url(self):
+        return self._parent_url
+
+    @parent_url.setter
+    def parent_url(self, purl):
+        if not isinstance(purl, Url):
+            purl = Url(purl)
+        self._parent_url = purl
+
     @property
     def original_url(self):
         return self._original_url

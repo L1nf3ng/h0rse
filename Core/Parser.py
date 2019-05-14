@@ -190,7 +190,9 @@ def getURL_with_xpath(html, start_url):
         url_list.append(start_url.host+x)
     # 4th Step, translate the normal url to Url class
     for url in url_list:
-        Url_list.append(Url(url))
+        t = Url(url)
+        t.parent_url = start_url.original_url
+        Url_list.append(t)
     return Url_list
 
 
