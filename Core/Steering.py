@@ -45,7 +45,7 @@ class Steering:
         2. 将Url Class填入set中，但需要实现__eq__和__hash__，会产生额外内存开销
         3. 这里可以采用greenlet划分任务，当然，对任务队列和history的修改操作都要带锁
     '''
-    def run(self,start_url):
+    def run(self,start_url, headers= None):
         # 单线程模式
         # 为队列添加初始url
         ignore_file_ext = ['ico', 'jpg', 'jpeg', 'gif', 'png', 'bmp', 'css', 'zip', 'rar', 'ttf']
@@ -68,7 +68,7 @@ class Steering:
                 continue
             # send request
             self._history.append(base_url)
-            wheel = Wheel(base_url, 'get')
+            wheel = Wheel(base_url, 'get' ,headers= headers)
             # get response
             '''
             except AttributeError as ext:
@@ -114,8 +114,9 @@ class Steering:
 
 
 if __name__ == '__main__':
+#    header = {'Cookie': 'security=low; security_level=0; PHPSESSID=48lfcvid2ede63nka9vgea52a3; acopendivids=swingset,jotto,phpbb2,redmine; acgroupswithpersist=nada'}
     t = Steering()
-    t.run('http://www.bandao.cn')
+    t.run('http://10.10.10.108/dvwa')
     print("we've searched {} urls".format(len(t.history)))
     print("there're {} urls left".format(len([x[0] for x in t.task_queue])))
 

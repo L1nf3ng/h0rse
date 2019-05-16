@@ -87,7 +87,7 @@ class Response:
 
     def cookies_handler(self,headers):
         if "Set-Cookie" in headers.keys():
-            act_cookies = headers.get('Set-Cookie')
+            act_cookies = {'Cookie':headers.get('Set-Cookie')}
         else:
             act_cookies = None
         return act_cookies
