@@ -9,13 +9,15 @@
 
 
 from lxml.etree import parse, HTMLParser, fromstring
-from urllib.parse import urlencode
 from Core import Wheel
 from Configs import Config
 from Http.Url import Url
 import time
 
-STORE_FILE = '../tmp/index.html'
+
+ROOT_URL = 'www.bandao.cn'
+STORE_FILE = '../Temp/index.html'
+
 
 ############################################################
 #
@@ -86,11 +88,45 @@ def retrieve_page(url):
 
 
 ############################################################
+# 用xpath检索DOM树的函数
+# 这里预留了一个全Url类组成的集合类Url_set，后期要用时可以return一下
+############################################################
+def getURL_with_xpath(file):
+    # frame 和 iframe 傻傻分不清
+    Origin_Attrs = ['a','img','link','script','iframe','frame','form','object']
+    ROOT_URL = ['href', 'src', 'data', 'action']
+    Url_set, res2,domains = set(),set(),set()
+    parser= HTMLParser()
+    doc = parse(file,parser)
+    for rule in Origin_Attrs:
+        temp = doc.xpath('//@%s'%rule)
+        res2.update(temp)
+    # get the incorrect urls
+    to_remove = []
+    for url in res2:
+        if not url.startswith('http://') and not url.startswith('https://'):
+            to_remove.append(url)
+    # add appropriate prefix
+    for x in to_remove:
+        res2.remove(x)
+        if not x.startswith('/'):
+            x = '/'+x
+        res2.add(ROOT_URL+x)
+    # translate the normal url to Url class
+    for url in res2:
+        Url_set.add(Url(url))
+    for url in Url_set:
+        domains.add(url.host)
+    return res2, domains
+
+
+############################################################
 # 用xpath检索DOM树中的所有的form
 # 并对这些form下的input子节点自动填值并构造post请求
 # 其实这个方法并不适合web2.0
 ############################################################
 def auto_fill(name):
+    # TODO: finish it tonight or tomorrow!
     input_value_dict={
         'badb0y':['username','user','userid','nickname','name'],
         '123erty':['password','pass','pwd'],
@@ -108,23 +144,15 @@ def auto_fill(name):
     return p_val
 
 
-def handle_form_with_xpath(tree):
-#    ps = HTMLParser()
-#    doc = parse(html, ps)
-    forms = tree.xpath('//form')
+def getForm_with_xpath(html):
+    ps = HTMLParser()
+    doc = fromstring(html, ps)
+    forms = doc.xpath('//form')
     # there're no forms
     if forms == []:
-        return []
+        return None
     else:
-        results = []
         for form in forms:
-            temp = form.xpath('./@action')
-            if temp==[]:
-                # 没有action="abc/123/jdk.php"之类，则直接跳过
-                continue
-            base_url = temp[0]
-            if base_url == '':
-                continue
             inputs = form.xpath('./input')
             # here exists input labels
             params = {}
@@ -140,61 +168,7 @@ def handle_form_with_xpath(tree):
                     else:
                         p_val = value[0]
                     params.update({p_name:p_val})
-            if params != {}:
-                # TODO：?拼接的方式，默认了form以get的方式请求数据，但实际上一个form表单有可能没有method，而它的提交完全由ajax来控制，后期需要解决一下（又是web2.0问题）。
-                url = base_url+'?'+urlencode(params)
-            else:
-                url = base_url
-            results.append(url)
-    return results
-
-
-############################################################
-# 用xpath检索DOM树的函数
-# 这里预留了一个全Url类组成的集合类Url_list
-# 返回值： 标准化的Url class类，纠正了错误格式，但没有进行清洗
-############################################################
-'''
-    这个函数目前需要承担多个解析任务，后期有可能拆分进不同的函数或类中。
-    表单URL的提取（不仅仅包括action，还有其中带参数版）；
-    不再使用set做去重工作，而是are_they_similar()函数
-'''
-def getURL_with_xpath(html, start_url):
-    # frame 和 iframe 傻傻分不清
-    Origin_Attrs = ['href', 'src', 'data', 'action']
-    # @param Url_list,存储标准Url类的列表
-    # @param url_list,存储粗提取的str类的url列表
-    Url_list, url_list = [], []
-    parser= HTMLParser()
-    doc = fromstring(html,parser)
-    # 1st Step, extract all urls by dom-tree.
-    for rule in Origin_Attrs:
-        temp = doc.xpath('//@%s'%rule)
-        url_list.extend(temp)
-    # 2nd Step, add some form urls:
-    try:
-        url_list.extend(handle_form_with_xpath(doc))
-    except Exception as ext:
-        print(ext,' --- current dom-tree don\'t contain forms or correct forms, the url is {}'.format(start_url.original_url))
-    # 3rd Step, modify those urls which in wrong-format
-    # to_modify stores the url to delete, then add the right-format urls
-    to_modify = []
-    for url in url_list:
-        if not url.startswith('http://') and not url.startswith('https://'):
-            to_modify.append(url)
-    # add appropriate prefix
-    for x in to_modify:
-        url_list.remove(x)
-        if not x.startswith('/'):
-            x = '/'+x
-        url_list.append(start_url.host+x)
-    # 4th Step, translate the normal url to Url class
-    for url in url_list:
-        t = Url(url)
-        t.parent_url = start_url.original_url
-        Url_list.append(t)
-    return Url_list
-
+            return params
 
 ############################################################
 # 描述：
@@ -239,30 +213,22 @@ def are_they_similar(urla, urlb):
 #   1. 多类url的去似去含
 #   2. 表单的自动填充，生成url，也即post类url
 # 参数：
-#   输入--未经清洗的Http.Url class集合
-# TODO：加入对静态文件的过滤，特别是图片、媒体类，否则严重影响后面内容的解析
+#   输入--未经清洗的Http.Url.Url集合
 ############################################################
 def sanitize_urls(dirty_urls):
-    # firstly, we define the file extension names to ignore
-    # TODO:需要写一个针对js文件的URL提取代码，也即针对body的提取。
-    ignore_file_ext=['ico', 'jpg','jpeg', 'gif', 'png', 'bmp', 'css', 'zip', 'rar', 'ttf']
-    # secondly, we just sanitize the similar urls
-    clean_urls = []
+    # the first implements: we just sanitize the similar urls
+    clean_urls = [dirty_urls[0]]
     for urld in dirty_urls:
-        if urld.file_ext in ignore_file_ext:
-            continue
         # 逻辑错误哟，应该检查完所有clean_url后再改变，否则可能重复添加
         AppendIt, ToDelete = True, None
-        # clean_urls不为空则查重，为空直接添加
-        if len(clean_urls)!=0:
-            for urlc in clean_urls:
-                temp = are_they_similar(urld,urlc)
-                # 有相同url或包含某条url，则添加（删除）；否则添加之
-                if temp == 0:
-                    AppendIt = False
-                if temp == 1:
-                    # append the left one, ie. dirty_url
-                    ToDelete = urlc
+        for urlc in clean_urls:
+            temp = are_they_similar(urld,urlc)
+            # 有相同url或包含某条url，则添加（删除）；否则添加之
+            if temp == 0:
+                AppendIt = False
+            if temp == 1:
+                # append the left one, ie. dirty_url
+                ToDelete = urlc
         if AppendIt:
             clean_urls.append(urld)
         if ToDelete!= None:
@@ -273,7 +239,7 @@ def sanitize_urls(dirty_urls):
 ############################################################
 # 输出不符合标准格式的url类
 #
-# %% 后期移除，或放到测试代码中 %%
+# %% 后期移除，后放到测试代码中 %%
 ############################################################
 def out_invalid(res):
     for x in res:
@@ -287,13 +253,13 @@ if __name__ == '__main__':
     # now we start to parse the document
 
     past = time.time()
-    url_set,domains = getURL_with_xpath(STORE_FILE)
-    print('result len: ',len(url_set))
+    res2,domains = getURL_with_xpath(STORE_FILE)
+    print('result len: ',len(res2))
     now = time.time()
     print("we cost %ss time!"%(now-past))
 
 #    print("here're some invalid urls:")
-#    out_invalid(url_set)
+#    out_invalid(res2)
 
     print('We get these sub domains: it\'s totally {} domains'.format(len(domains)))
     for domain in domains:
@@ -308,4 +274,3 @@ if __name__ == '__main__':
     now = time.time()
     print("we cost %ss time!"%(now-past))
     '''
-
