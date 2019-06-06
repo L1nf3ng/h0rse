@@ -114,7 +114,8 @@ class Steering:
 
 
 if __name__ == '__main__':
-#    header = {'Cookie': 'security=low; security_level=0; PHPSESSID=48lfcvid2ede63nka9vgea52a3; acopendivids=swingset,jotto,phpbb2,redmine; acgroupswithpersist=nada'}
+#    header = {'Cookie': 'security=low; security_level=0; PHPSESSID=48lfcvid2ede63nka9vgea52a3;
+#      acopendivids=swingset,jotto,phpbb2,redmine; acgroupswithpersist=nada'}
     t = Steering()
     t.run('http://10.10.10.108/dvwa')
     print("we've searched {} urls".format(len(t.history)))
