@@ -46,18 +46,19 @@ def getVectors(strings=None, filepath=None):
 
     # 衰减因子，数值越大代表衰减越厉害
     decay1, decay2 = 0.4, 0.6
+    # 先试试压缩到1000维特征向量的效果，取余操作，故第1000号元素无值
+    vectors = [0.0]*1000
+    ## 1.选取每个节点作为特征向量
+    ATTRIBS = ['id','name','class','style']
+
+    # the first node which contains no attributes
     if strings == None:
         path = filepath
         doc = etree.parse(path, etree.HTMLParser())
+        root = doc.getroot()
     else:
-        doc = etree.parse(strings, etree.HTMLParser())
-    # 先试试压缩到1000维特征向量的效果，取余操作，故第1000号元素无值
-    vectors = [0.0]*1000
+        root = etree.fromstring(strings, etree.HTMLParser())
 
-    ## 1.选取每个节点作为特征向量
-    ATTRIBS = ['id','name','class','style']
-    # the first node which contains no attributes
-    root = doc.getroot()
     # the nodeSeq contains nodes which will be parsed later
     nodeSeq = deque()
     extend(nodeSeq, root, 0)
@@ -106,13 +107,14 @@ def getVectors(strings=None, filepath=None):
     for item in results:
         print(item)
     '''
-
     ## 4.压缩产生N维特征向量（例如：N=1000）
     for iter in range(0,len(dimens)):
         vectors[dimens[iter]%1000] += weights[iter]
-
+    '''
     for iter in range(0,len(vectors)):
         print("维数：{} 权值：{}".format(iter, vectors[iter]))
+    '''
+    return vectors
 
 # get difference ratio from two proper vectors
 def pageRaito(vec1, vec2):
