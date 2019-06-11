@@ -10,20 +10,19 @@
 @procedures:
     1)将DOM树划分成不同的特征单元（节点、兄弟节点、子节点等形成的组合）
     2)特征单元映射出高维特征向量的维数（<标签名+属性值> ==hash==> 数值，推荐属性：id、class、name、style）
-    3)对特征向量根据规则分配权值（同一特征向量在DOM里多次出现就将权值累加）：
+    3)对特征向量根据规则分配权值（同一特征向量在DOM里多次出现就将权值累加，这一步其实可以在最后一步压缩时完成）：
         <1>随节点深度的增加而递减，可采用等比递减；
         <2>权值随重复兄弟节点的增加而递减
         <3>权值随特征单元无相关属性而递减
     4)将所得权值作为特征向量对应维数的数值，最后将结果映射成N维的向量，存储比较。
-@addons:
-    在进行相似度查找时，需要检索大量的数据，专利中采用了一种基于网格的算法。后面可以一看。
 P.S.
     https://www.4hou.com/penetration/18447.html
     https://www.4hou.com/web/17568.html
     https://www.freebuf.com/vuls/203907.html
-TODO: 目前完成了特征值提取，next加入距离公式，生成指标
+TODO: 在进行相似度查找时，需要检索大量的数据，专利中采用了一种基于网格的算法，可以一看。
 '''
 
+import math
 import hashlib
 from lxml import etree
 from collections import deque
@@ -42,12 +41,16 @@ def myZip( seq1, seq2):
         newDict.update( {seq1[key]:seq2[key]} )
     return newDict
 
-if __name__ == '__main__':
+# the two parameters must occur one
+def getVectors(strings=None, filepath=None):
 
-    path = '../Temp/index.html'
     # 衰减因子，数值越大代表衰减越厉害
     decay1, decay2 = 0.4, 0.6
-    doc = etree.parse(path, etree.HTMLParser())
+    if strings == None:
+        path = filepath
+        doc = etree.parse(path, etree.HTMLParser())
+    else:
+        doc = etree.parse(strings, etree.HTMLParser())
     # 先试试压缩到1000维特征向量的效果，取余操作，故第1000号元素无值
     vectors = [0.0]*1000
 
@@ -111,4 +114,21 @@ if __name__ == '__main__':
     for iter in range(0,len(vectors)):
         print("维数：{} 权值：{}".format(iter, vectors[iter]))
 
+# get difference ratio from two proper vectors
+def pageRaito(vec1, vec2):
+    '''
+    欧式距离和余弦相似度的区别：
+        余弦相似度衡量的是维度间取值方向的一致性，注重维度之间的差异，不注重数值上的差异，而欧氏度量的正是数值上的差异性。
+    :param vec1: proper vectors of webpage1
+    :param vec2: proper vectors of webpage2
+    :return: diff ratio in cosine distance
+    '''
+    numerator, deno1, deno2 = 0.0, 0.0, 0.0
+    for iter in range(0,len(vec1)):
+        numerator += vec1[iter]*vec2[iter]
+    for iter in range(0,len(vec1)):
+        deno1 += vec1[iter]*vec1[iter]
+        deno2 += vec2[iter]*vec2[iter]
+
+    return numerator/(math.sqrt(deno1*deno2))
 
