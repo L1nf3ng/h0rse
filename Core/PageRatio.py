@@ -24,6 +24,7 @@ TODO: 在进行相似度查找时，需要检索大量的数据，专利中采�
 
 import math
 import hashlib
+import difflib
 from lxml import etree
 from collections import deque
 
@@ -42,7 +43,7 @@ def myZip( seq1, seq2):
     return newDict
 
 # the two parameters must occur one
-def getVectors(strings=None, filepath=None):
+def getPropertyVectors(strings=None, filepath=None):
 
     # 衰减因子，数值越大代表衰减越厉害
     decay1, decay2 = 0.4, 0.6
@@ -117,7 +118,7 @@ def getVectors(strings=None, filepath=None):
     return vectors
 
 # get difference ratio from two proper vectors
-def pageRaito(vec1, vec2):
+def pageStructureRaito(vec1, vec2):
     '''
     欧式距离和余弦相似度的区别：
         余弦相似度衡量的是维度间取值方向的一致性，注重维度之间的差异，不注重数值上的差异，而欧氏度量的正是数值上的差异性。
@@ -134,3 +135,7 @@ def pageRaito(vec1, vec2):
 
     return numerator/(math.sqrt(deno1*deno2))
 
+def pageContentRatio(body1, body2):
+    matcher = difflib.SequenceMatcher()
+    matcher.set_seqs(body1, body2)
+    return matcher.ratio()

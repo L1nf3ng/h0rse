@@ -13,7 +13,9 @@ h0rse是一个更现代化的Web漏洞扫描器，它与其他同类黑客工具
 ## Good Readings:
 
 1. [https://www.anquanke.com/post/id/178339]()
-2. [https://paper.seebug.org/730/]()
+2. [http://blog.fatezero.org/2018/03/05/web-scanner-crawler-01/]()
+3. [http://blog.fatezero.org/2018/04/09/web-scanner-crawler-02/]()
+4. [http://blog.fatezero.org/2018/04/15/web-scanner-crawler-03/]()
 
 
 ## 一点感悟和想法
