@@ -8,8 +8,8 @@
 @desc: Test Core.Parser Module
 '''
 
-from Core.Parser import are_they_similar,sanitize_urls, getForm_with_xpath
-from Http.Url import Url
+from h0rse.Libs.Parser.Parser import are_they_similar,sanitize_urls, getForm_with_xpath
+from h0rse.Libs.Http.Url import Url
 import unittest
 
 

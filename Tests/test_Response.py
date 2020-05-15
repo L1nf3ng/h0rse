@@ -1,7 +1,7 @@
 import unittest
 import requests
 
-from Http.Response import Response, toResponse
+from h0rse.Libs.Http.Response import Response, toResponse
 
 
 class MyTestCase(unittest.TestCase):

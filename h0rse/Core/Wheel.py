@@ -11,9 +11,9 @@
     2. Http Basic认证，https的兼容性
 '''
 
-from Http import Url
-from Http import Request
-from Http import Response
+from h0rse.Libs.Http import Url
+from h0rse.Libs.Http import Request
+from h0rse.Libs.Http import Response
 
 import requests
 

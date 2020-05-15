@@ -8,8 +8,8 @@
 @desc: 记录header、cookie等重要信息
 '''
 
-from Configs import Config
-from Http.Url import Url
+from ..Config import Config
+from . import Url
 
 class Request:
 

@@ -9,7 +9,7 @@
 '''
 
 
-from Configs import Config
+from ..Config import Config
 
 from urllib.parse import urlparse, parse_qs
 

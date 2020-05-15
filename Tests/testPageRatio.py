@@ -2,7 +2,7 @@ import unittest
 
 # import time
 import requests
-from Core.PageRatio import pageStructureRaito, getPropertyVectors, pageContentRatio
+from h0rse.Libs.Misc.PageRatio import pageStructureRaito, getPropertyVectors, pageContentRatio
 
 class MyTestCase(unittest.TestCase):
     _url1 = 'http://china.huisou.com/so/sale/k-rtyy.html'

@@ -9,15 +9,13 @@
 
 
 from lxml.etree import parse, HTMLParser, fromstring
-from Core import Wheel
-from Configs import Config
-from Http.Url import Url
+from Wheel import Wheel
+from h0rse.Libs.Config import Config
+from h0rse.Libs.Http.Url import Url
 import time
-
 
 ROOT_URL = 'www.bandao.cn'
 STORE_FILE = '../Temp/index.html'
-
 
 ############################################################
 #

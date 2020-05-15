@@ -12,7 +12,7 @@
 # for Requests.Response
 
 import re
-from Configs.Config import  DEFAULT_ENCODING
+from ..Config.Config import  DEFAULT_ENCODING
 
 def toResponse(response):
     code = response.status_code

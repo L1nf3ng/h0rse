@@ -11,12 +11,13 @@
     3. 未成功请求进入任务队列重新尝试
 '''
 
-from Core.Wheel import Wheel
-from Core.Parser import getURL_with_xpath, sanitize_urls
-from collections import deque
-from Http.Url import Url
 
-import traceback
+from Wheel import Wheel
+from Parser import getURL_with_xpath, sanitize_urls
+from collections import deque
+from h0rse.Libs.Http.Url import Url
+
+import sys
 
 class Steering:
     def __init__(self):
@@ -116,6 +117,8 @@ class Steering:
 if __name__ == '__main__':
 #    header = {'Cookie': 'security=low; security_level=0; PHPSESSID=48lfcvid2ede63nka9vgea52a3;
 #      acopendivids=swingset,jotto,phpbb2,redmine; acgroupswithpersist=nada'}
+
+    print(sys.path)
     t = Steering()
     t.run('http://10.10.10.108/dvwa')
     print("we've searched {} urls".format(len(t.history)))
