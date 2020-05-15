@@ -12,7 +12,7 @@ h0rse是一个更现代化的Web漏洞扫描器，开发它的目的在于获取
 
 ## 项目框架
 
-![](pictures/architecture.png)
+![](pictures/Architecture.png)
 
 | 模块名称 | 子类明细 | 功能描述 |
 | --- | --- | --- |
